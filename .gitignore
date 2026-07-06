@@ -1,0 +1,6 @@
+# Database artifact
+backend/dxc_ops.db
+
+# Python cache
+__pycache__/
+*.pyc

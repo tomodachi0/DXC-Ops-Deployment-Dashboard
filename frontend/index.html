@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DXC Ops & Deployment Dashboard</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-mark">DXC</span>
+          <div>
+            <strong>DXC DevOps Hub</strong>
+            <p>Operations & deployment overview</p>
+          </div>
+        </div>
+        <nav>
+          <button class="nav-link active" data-panel="overview-panel">Overview</button>
+          <button class="nav-link" data-panel="services-panel">Services</button>
+          <button class="nav-link" data-panel="deployments-panel">Deployments</button>
+          <button class="nav-link" data-panel="incidents-panel">Incidents</button>
+          <button class="nav-link" data-panel="monitoring-panel">Monitoring</button>
+        </nav>
+      </aside>
+      <main class="main-content">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">DXC Ops Dashboard</p>
+            <h1 id="page-title">Overview</h1>
+          </div>
+          <div class="topbar-actions">
+            <label class="select-group">
+              <span>Environment</span>
+              <select id="environment-filter">
+                <option value="all">All</option>
+                <option value="production">Production</option>
+                <option value="staging">Staging</option>
+                <option value="dev">Dev</option>
+              </select>
+            </label>
+            <div class="status-block">
+              <p id="live-clock">--:--:--</p>
+              <p class="muted" id="synced-indicator">synced just now</p>
+            </div>
+          </div>
+        </header>
+
+        <section id="panel-container">
+          <section id="overview-panel" class="panel active">
+            <div class="panel-grid">
+              <article class="card kpi-card loading" data-card="uptime">
+                <p class="card-label">Average Uptime</p>
+                <h2 class="card-value">--%</h2>
+              </article>
+              <article class="card kpi-card loading" data-card="services">
+                <p class="card-label">Active Services</p>
+                <h2 class="card-value">--</h2>
+              </article>
+              <article class="card kpi-card loading" data-card="deployments">
+                <p class="card-label">Deployments Today</p>
+                <h2 class="card-value">--</h2>
+              </article>
+              <article class="card kpi-card loading" data-card="incidents">
+                <p class="card-label">Open Incidents</p>
+                <h2 class="card-value">--</h2>
+              </article>
+            </div>
+
+            <div class="section-headline">
+              <h2>Service health</h2>
+              <p>Live service status with latency, uptime, and operational load.</p>
+            </div>
+            <div id="service-grid" class="responsive-grid"></div>
+
+            <div class="dashboard-columns">
+              <div class="card recent-card">
+                <div class="card-header">
+                  <h3>Recent deployments</h3>
+                </div>
+                <div id="recent-deployments" class="list-panel"></div>
+              </div>
+              <div class="card recent-card">
+                <div class="card-header">
+                  <h3>Recent incidents</h3>
+                </div>
+                <div id="recent-incidents" class="list-panel"></div>
+              </div>
+            </div>
+          </section>
+
+          <section id="services-panel" class="panel">
+            <div class="panel-header">
+              <div>
+                <h2>Services</h2>
+                <p>Browse service status and inspect logs in real time.</p>
+              </div>
+            </div>
+            <div id="services-list" class="responsive-grid"></div>
+          </section>
+
+          <section id="deployments-panel" class="panel">
+            <div class="panel-header with-action">
+              <div>
+                <h2>Deployments</h2>
+                <p>Filter by environment and status, then trigger a new release.</p>
+              </div>
+              <button id="open-deploy-form" class="primary-button">Trigger Deploy</button>
+            </div>
+
+            <div class="table-controls">
+              <label>
+                Environment
+                <select id="deploy-env-filter">
+                  <option value="all">All</option>
+                  <option value="production">Production</option>
+                  <option value="staging">Staging</option>
+                  <option value="dev">Dev</option>
+                </select>
+              </label>
+              <label>
+                Status
+                <select id="deploy-status-filter">
+                  <option value="all">All</option>
+                  <option value="success">Success</option>
+                  <option value="failed">Failed</option>
+                  <option value="rolled_back">Rolled Back</option>
+                </select>
+              </label>
+            </div>
+            <div class="card table-card loading" id="deployments-table-card">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Service</th>
+                    <th>Version</th>
+                    <th>Environment</th>
+                    <th>Triggered by</th>
+                    <th>Duration</th>
+                    <th>Status</th>
+                    <th>Timestamp</th>
+                  </tr>
+                </thead>
+                <tbody id="deployments-table-body"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section id="incidents-panel" class="panel">
+            <div class="panel-header">
+              <div>
+                <h2>Incidents</h2>
+                <p>Track active issues and review recent resolutions.</p>
+              </div>
+            </div>
+            <div class="card table-card loading" id="incidents-table-card">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Service</th>
+                    <th>Title</th>
+                    <th>Severity</th>
+                    <th>Status</th>
+                    <th>Opened</th>
+                    <th>Resolved</th>
+                  </tr>
+                </thead>
+                <tbody id="incidents-table-body"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section id="monitoring-panel" class="panel">
+            <div class="panel-header">
+              <div>
+                <h2>Monitoring</h2>
+                <p>Charts derived from service and deployment metrics.</p>
+              </div>
+            </div>
+            <div class="dashboard-columns">
+              <div class="card chart-card">
+                <h3>Latency by service</h3>
+                <canvas id="latency-chart"></canvas>
+              </div>
+              <div class="card chart-card">
+                <h3>Status distribution</h3>
+                <canvas id="status-chart"></canvas>
+              </div>
+            </div>
+            <div class="card chart-card">
+              <h3>Deployments last 7 days</h3>
+              <canvas id="deployments-chart"></canvas>
+            </div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <aside class="drawer" id="service-drawer">
+      <div class="drawer-header">
+        <div>
+          <p id="drawer-service-name">Service logs</p>
+          <p class="muted" id="drawer-service-environment"></p>
+        </div>
+        <button id="close-drawer" aria-label="Close panel">×</button>
+      </div>
+      <div class="drawer-details">
+        <div class="resource-bars">
+          <div>
+            <span>CPU usage</span>
+            <div class="meter"><div class="meter-fill" id="cpu-fill"></div></div>
+          </div>
+          <div>
+            <span>Memory usage</span>
+            <div class="meter"><div class="meter-fill" id="memory-fill"></div></div>
+          </div>
+        </div>
+        <div class="log-console" id="service-log-console"></div>
+      </div>
+    </aside>
+
+    <div class="modal-backdrop hidden" id="deploy-modal-backdrop">
+      <div class="modal" id="deploy-modal">
+        <div class="modal-header">
+          <h2>Trigger deployment</h2>
+          <button id="close-deploy-modal" aria-label="Close modal">×</button>
+        </div>
+        <form id="deploy-form">
+          <label>
+            Service
+            <select id="deploy-service-select" required></select>
+          </label>
+          <label>
+            Version
+            <input type="text" id="deploy-version" value="v2.0.1" required />
+          </label>
+          <label>
+            Environment
+            <select id="deploy-environment" required>
+              <option value="production">Production</option>
+              <option value="staging">Staging</option>
+              <option value="dev">Dev</option>
+            </select>
+          </label>
+          <div class="modal-actions">
+            <button type="button" class="secondary-button" id="cancel-deploy">Cancel</button>
+            <button type="submit" class="primary-button">Trigger</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="error-banner" class="error-banner hidden"></div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
