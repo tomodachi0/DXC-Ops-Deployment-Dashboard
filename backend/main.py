@@ -2,6 +2,8 @@ import sqlite3
 import random
 from datetime import datetime
 from typing import Generator, List, Optional
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -194,3 +196,9 @@ def create_deployment(
         (deployment_id,),
     ).fetchone()
     return build_deployment(row)
+
+# DEV: serve the static frontend so visiting http://localhost:8000/ returns index.html.
+# In production, serve static assets from a dedicated webserver (nginx) or CDN.
+frontend_dir = Path(__file__).parent.parent / "frontend"
+if frontend_dir.exists():
+    app.mount("/", StaticFiles(directory=str(frontend_dir), html=True), name="frontend")
