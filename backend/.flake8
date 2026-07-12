@@ -1,0 +1,4 @@
+[flake8]
+max-line-length = 160
+exclude = venv, __pycache__
+extend-ignore = E501
