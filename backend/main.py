@@ -200,6 +200,9 @@ def create_deployment(
 # DEV: serve the static frontend so visiting http://localhost:8000/ returns index.html.
 # In production, serve static assets from a dedicated webserver (nginx) or CDN.
 
+
 frontend_dir = Path(__file__).parent.parent / "frontend"
+
+
 if frontend_dir.exists():
     app.mount("/", StaticFiles(directory=str(frontend_dir), html=True), name="frontend")
