@@ -6,7 +6,7 @@ on:
 
 
 jobs:
-  lint:
+  all:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -29,17 +29,6 @@ jobs:
       - name: Lint code
         run: flake8 .
 
-  test:
-    runs-on: ubuntu-latest
-    needs: lint
-    defaults:
-      run:
-        working-directory: backend
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -47,22 +36,18 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt
+          pip install -r backend/requirements.txt
           pip install pytest httpx
 
       - name: Run tests
-        run: pytest
-
-  build:
-    runs-on: ubuntu-latest
-    needs: test
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+        run: backend/pytest
 
       - name: Build backend image
         run: docker build -t dxc-backend:ci-test ./backend
 
       - name: Build frontend image
         run: docker build -t dxc-frontend:ci-test ./frontend
+
+
+
+
