@@ -23,10 +23,10 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-          pip install flake8 pytest httpx
+          pip install ruff pytest httpx
 
       - name: Lint code
-        run: flake8 .
+        run: ruff check --output-format=github .
 
       - name: Run tests
         run: pytest
