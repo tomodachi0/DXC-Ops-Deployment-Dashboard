@@ -33,4 +33,4 @@ jobs:
         with:
           context: ./frontend
           push: true
-          tags: ghcr.io/${{ github.repository }}/frontend:latest
+          tags: ghcr.io/tomodachi0/dxc-ops-deployment-dashboard/frontend:latest
