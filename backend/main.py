@@ -1,12 +1,12 @@
-import sqlite3
 import random
+import sqlite3
 from datetime import datetime
-from typing import Generator, List, Optional
-from fastapi.staticfiles import StaticFiles
 from pathlib import Path
+from typing import Generator, List, Optional
 
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from database import get_connection, initialize_database
 from models import (
@@ -61,7 +61,9 @@ def build_log(row: sqlite3.Row) -> LogEntry:
 
 
 @app.get("/api/services", response_model=List[Service])
-def list_services(environment: Optional[str] = Query(None), db: sqlite3.Connection = Depends(get_db)):
+def list_services(
+    environment: Optional[str] = Query(None), db: sqlite3.Connection = Depends(get_db)
+):
     query = "SELECT * FROM services"
     params = []
     if environment:
@@ -139,7 +141,9 @@ def list_incidents(
 
 @app.get("/api/metrics/summary", response_model=MetricsSummary)
 def metrics_summary(db: sqlite3.Connection = Depends(get_db)):
-    averages = db.execute("SELECT AVG(uptime_percent) AS avg_uptime FROM services").fetchone()
+    averages = db.execute(
+        "SELECT AVG(uptime_percent) AS avg_uptime FROM services"
+    ).fetchone()
     active_services = db.execute("SELECT COUNT(*) AS total FROM services").fetchone()[0]
     deployments_today = db.execute(
         "SELECT COUNT(*) FROM deployments WHERE DATE(deployed_at) = DATE('now')"
@@ -196,6 +200,7 @@ def create_deployment(
         (deployment_id,),
     ).fetchone()
     return build_deployment(row)
+
 
 # DEV: serve the static frontend so visiting http://localhost:8000/ returns index.html.
 # In production, serve static assets from a dedicated webserver (nginx) or CDN.

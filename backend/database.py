@@ -1,7 +1,7 @@
+import random
 import sqlite3
 from datetime import datetime, timedelta
 from pathlib import Path
-import random
 
 DB_PATH = Path(__file__).parent / "dxc_ops.db"
 
@@ -190,15 +190,32 @@ def seed_data(conn: sqlite3.Connection):
         )
         service_ids.append(cursor.lastrowid)
 
-    deployment_versions = ["v1.4.2", "v1.4.3", "v1.5.0", "v2.0.0-rc1", "v2.0.0", "v2.1.0", "v1.5.1"]
-    deploy_statuses = ["success"] * 18 + ["failed", "rolled_back", "in_progress", "failed", "success", "success"]
+    deployment_versions = [
+        "v1.4.2",
+        "v1.4.3",
+        "v1.5.0",
+        "v2.0.0-rc1",
+        "v2.0.0",
+        "v2.1.0",
+        "v1.5.1",
+    ]
+    deploy_statuses = ["success"] * 18 + [
+        "failed",
+        "rolled_back",
+        "in_progress",
+        "failed",
+        "success",
+        "success",
+    ]
     triggers = ["yassine.k", "ci-bot", "release-pipeline", "oncall.bot"]
     deployments = []
     for i in range(25):
         service_id = rng.choice(service_ids)
         version = rng.choice(deployment_versions)
         status = deploy_statuses[i % len(deploy_statuses)]
-        deployed_at = now - timedelta(days=rng.randint(0, 6), hours=rng.randint(0, 23), minutes=rng.randint(0, 59))
+        deployed_at = now - timedelta(
+            days=rng.randint(0, 6), hours=rng.randint(0, 23), minutes=rng.randint(0, 59)
+        )
         deployments.append(
             (
                 service_id,
@@ -233,7 +250,9 @@ def seed_data(conn: sqlite3.Connection):
         service_id = service_ids[idx % len(service_ids)]
         severity = rng.choice(severities)
         status = rng.choice(incident_status)
-        opened_at = now - timedelta(days=rng.randint(0, 6), hours=rng.randint(0, 12), minutes=rng.randint(0, 59))
+        opened_at = now - timedelta(
+            days=rng.randint(0, 6), hours=rng.randint(0, 12), minutes=rng.randint(0, 59)
+        )
         resolved_at = None
         if status == "resolved":
             resolved_at = opened_at + timedelta(hours=rng.randint(1, 36))
@@ -277,7 +296,12 @@ def seed_data(conn: sqlite3.Connection):
         for entry_index in range(count):
             level = rng.choices(log_levels, weights=[65, 25, 10])[0]
             message = rng.choice(log_messages)
-            timestamp = now - timedelta(days=rng.randint(0, 6), hours=rng.randint(0, 23), minutes=rng.randint(0, 59), seconds=rng.randint(0, 59))
+            timestamp = now - timedelta(
+                days=rng.randint(0, 6),
+                hours=rng.randint(0, 23),
+                minutes=rng.randint(0, 59),
+                seconds=rng.randint(0, 59),
+            )
             logs.append((service_id, level, message, timestamp.isoformat() + "Z"))
 
     logs.sort(key=lambda row: row[3], reverse=True)
