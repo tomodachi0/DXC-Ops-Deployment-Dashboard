@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dxc-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: dxc-backend
+  template:
+    metadata:
+      labels:
+        app: dxc-backend
+    spec:
+      containers:
+        - name: backend
+          image: ghcr.io/tomodachi0/dxc-ops-deployment-dashboard/backend:latest
+          imagePullPolicy: Always     
+          ports:
+            - containerPort: 8000
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dxc-backend-service
+spec:
+  selector:
+    app: dxc-backend
+  ports:
+    - port: 8000
+      targetPort: 8000
+  type: ClusterIP
