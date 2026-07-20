@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: ghcr.io/tomodachi0/dxc-ops-deployment-dashboard/backend:64234aa
+          image: ghcr.io/tomodachi0/DXC-Ops-Deployment-Dashboard/backend:
           ports:
             - containerPort: 8000
           envFrom:
