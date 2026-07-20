@@ -43,6 +43,7 @@ jobs:
         run: docker build -t dxc-frontend:ci-test ./frontend
 
       - name: Update image tag in manifest
+        working-directory: .
         run: |
           sed -i "s|backend:.*|backend:${{ env.SHA_SHORT }}|" k8s/backend/deployment.yaml
           sed -i "s|frontend:.*|frontend:${{ env.SHA_SHORT }}|" k8s/frontend/deployment.yaml
