@@ -5,4 +5,4 @@ metadata:
   namespace: dxc-dashboard
 data:
   LOG_LEVEL: "info"
-  DB_PATH: "/backend/dxc_ops.db"
+  DB_PATH: "/data/dxc_ops.db"
