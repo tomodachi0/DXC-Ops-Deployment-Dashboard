@@ -1,4 +1,4 @@
-const apiBase = 'http://localhost:8000/api';
+const apiBase = '/api';
 const state = {
   services: [],
   deployments: [],

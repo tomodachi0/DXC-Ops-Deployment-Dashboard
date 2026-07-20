@@ -52,4 +52,9 @@ jobs:
           git add k8s/backend/deployment.yaml k8s/frontend/deployment.yaml
           git commit -m "Deploy commit ${{ env.SHA_SHORT }}" || echo "No changes to commit"
           git push
+        
+      - name: Verify image tags were set correctly
+        run: |
+          grep "image: ghcr.io/${{ github.repository }}/backend:${{ env.SHA_SHORT }}" k8s/backend/deployment.yaml
+          grep "image: ghcr.io/${{ github.repository }}/frontend:${{ env.SHA_SHORT }}" k8s/frontend/deployment.yaml
           
