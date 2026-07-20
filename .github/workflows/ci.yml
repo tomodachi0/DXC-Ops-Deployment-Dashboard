@@ -38,3 +38,13 @@ jobs:
       - name: Build frontend image
         working-directory: .
         run: docker build -t dxc-frontend:ci-test ./frontend
+
+      - name: Update image tag in manifest
+        run: |
+          sed -i "s|backend:.*|backend:${{ env.SHA_SHORT }}|" k8s/backend/deployment.yaml
+          sed -i "s|frontend:.*|frontend:${{ env.SHA_SHORT }}|" k8s/frontend/deployment.yaml
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add k8s/backend/deployment.yaml k8s/frontend/deployment.yaml
+          git commit -m "Deploy commit ${{ env.SHA_SHORT }}" || echo "No changes to commit"
+          git push

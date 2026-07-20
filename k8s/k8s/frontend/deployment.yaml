@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dxc-frontend
+  namespace: dxc-dashboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dxc-frontend
+  template:
+    metadata:
+      labels:
+        app: dxc-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: ghcr.io/tomodachi0/dxc-ops-deployment-dashboard/frontend:fzefhz
+          ports:
+            - containerPort: 80

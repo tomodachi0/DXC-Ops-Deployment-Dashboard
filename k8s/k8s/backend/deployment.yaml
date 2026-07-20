@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dxc-backend
+  namespace: dxc-dashboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dxc-backend
+  template:
+    metadata:
+      labels:
+        app: dxc-backend
+    spec:
+      containers:
+        - name: backend
+          image: ghcr.io/tomodachi0/dxc-ops-deployment-dashboard/backend:refve
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          env:
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secret
+                  key: API_KEY
+          volumeMounts:
+            - name: backend-storage
+              mountPath: /data
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 8000
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+      volumes:
+        - name: backend-storage
+          persistentVolumeClaim:
+            claimName: backend-data
