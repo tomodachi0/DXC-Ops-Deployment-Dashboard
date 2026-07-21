@@ -5,6 +5,6 @@ resources:
   - ../../base
 images:
   - name: ghcr.io/tomodachi0/dxc-ops-deployment-dashboard/backend
-    newTag: dev-ce638ce
+    newTag: dev-62b585f
   - name: ghcr.io/tomodachi0/dxc-ops-deployment-dashboard/frontend
-    newTag: dev-ce638ce
+    newTag: dev-62b585f
