@@ -15,6 +15,6 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: ghcr.io/tomodachi0/dxc-ops-deployment-dashboard/frontend:dev-fb5b19e
+          image: ghcr.io/tomodachi0/dxc-ops-deployment-dashboard/frontend:dev-ce638ce
           ports:
             - containerPort: 80
