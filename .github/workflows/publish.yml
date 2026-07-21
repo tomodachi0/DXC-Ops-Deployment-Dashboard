@@ -39,17 +39,20 @@ jobs:
           push: true
           tags: ghcr.io/tomodachi0/dxc-ops-deployment-dashboard/frontend:${{ github.ref_name }}-${{ env.SHA_SHORT }}
 
-      - name: Update image tag in manifest
+      - name: Update image tag in overlay
         run: |
-          sed -i "s|image: ghcr.io/.*/backend:.*|image: ghcr.io/tomodachi0/dxc-ops-deployment-dashboard/backend:${{ github.ref_name }}-${{ env.SHA_SHORT }}|" k8s/backend/deployment.yaml
-          sed -i "s|image: ghcr.io/.*/frontend:.*|image: ghcr.io/tomodachi0/dxc-ops-deployment-dashboard/frontend:${{ github.ref_name }}-${{ env.SHA_SHORT }}|" k8s/frontend/deployment.yaml
+          OVERLAY_ENV=dev
+          if [ "${{ github.ref_name }}" = "main" ]; then OVERLAY_ENV=production; fi
+          echo "OVERLAY_ENV=$OVERLAY_ENV" >> $GITHUB_ENV
+
+          sed -i "s|newTag: .*|newTag: ${{ github.ref_name }}-${{ env.SHA_SHORT }}|" k8s/overlays/$OVERLAY_ENV/kustomization.yaml
+
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add k8s/backend/deployment.yaml k8s/frontend/deployment.yaml
-          git commit -m "Deploy commit ${{ env.SHA_SHORT }}" || echo "No changes to commit"
+          git add k8s/overlays/$OVERLAY_ENV/kustomization.yaml
+          git commit -m "Deploy ${{ github.ref_name }} commit ${{ env.SHA_SHORT }}" || echo "No changes to commit"
           git push origin ${{ github.ref_name }}
 
-      - name: Verify image tags were set correctly
+      - name: Verify image tag was set correctly
         run: |
-          grep "image: ghcr.io/tomodachi0/dxc-ops-deployment-dashboard/backend:${{ github.ref_name }}-${{ env.SHA_SHORT }}" k8s/backend/deployment.yaml
-          grep "image: ghcr.io/tomodachi0/dxc-ops-deployment-dashboard/frontend:${{ github.ref_name }}-${{ env.SHA_SHORT }}" k8s/frontend/deployment.yaml
+          grep "newTag: ${{ github.ref_name }}-${{ env.SHA_SHORT }}" k8s/overlays/${{ env.OVERLAY_ENV }}/kustomization.yaml
