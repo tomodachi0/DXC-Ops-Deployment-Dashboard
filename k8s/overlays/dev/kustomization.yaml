@@ -3,6 +3,7 @@ kind: Kustomization
 namespace: dxc-dashboard-dev
 resources:
   - ../../base
+  - ingress.yaml
 images:
   - name: ghcr.io/tomodachi0/dxc-ops-deployment-dashboard/backend
     newTag: dev-62b585f
