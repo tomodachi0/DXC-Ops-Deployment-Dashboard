@@ -4,7 +4,7 @@ metadata:
   name: dxc-backend
   namespace: dxc-dashboard
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: dxc-backend
