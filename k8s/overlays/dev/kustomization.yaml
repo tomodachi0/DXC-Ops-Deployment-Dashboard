@@ -6,6 +6,6 @@ resources:
   - ingress.yaml
 images:
   - name: ghcr.io/tomodachi0/dxc-ops-deployment-dashboard/backend
-    newTag: dev-c977e40
+    newTag: dev-898b9e5
   - name: ghcr.io/tomodachi0/dxc-ops-deployment-dashboard/frontend
-    newTag: dev-c977e40
+    newTag: dev-898b9e5
