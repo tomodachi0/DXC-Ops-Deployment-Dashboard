@@ -36,20 +36,14 @@ jobs:
       - name: Start backend for DAST scan
         run: |
           docker run -d -p 8000:8000 --name dast-target ghcr.io/tomodachi0/dxc-ops-deployment-dashboard/backend:${{ github.ref_name }}-${{ env.SHA_SHORT }}
-          sleep 5
+          sleep 8
+          curl -f http://localhost:8000/api/health
 
       - name: Run OWASP ZAP baseline scan
         run: |
-          docker run --network host -v $(pwd):/zap/wrk/:rw \
+          docker run --network host \
             ghcr.io/zaproxy/zaproxy:stable \
-            zap-baseline.py -t http://localhost:8000 -m 2 -I -r zap-report.html || true
-
-      - name: Upload ZAP report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: zap-scan-results
-          path: zap-report.html
+            zap-baseline.py -t http://localhost:8000 -m 2 -I || true
 
       - name: Stop DAST target container
         if: always()
