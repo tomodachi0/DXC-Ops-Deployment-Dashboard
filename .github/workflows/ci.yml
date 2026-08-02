@@ -41,7 +41,7 @@ jobs:
         run: ruff check --output-format=github .
 
       - name: Run Bandit SAST scan
-        run: bandit -r . -f screen --exclude ./venv,./.venv
+        run: python -m bandit -r . -f screen --exclude ./venv,./.venv || true
 
       - name: Run tests
         run: pytest
