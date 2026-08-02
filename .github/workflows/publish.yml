@@ -42,6 +42,7 @@ jobs:
         uses: zaproxy/action-baseline@v0.12.0
         with:
           target: 'http://localhost:8000'
+          artifact_name: 'zap-scan-results'
 
       - name: Stop DAST target container
         if: always()
