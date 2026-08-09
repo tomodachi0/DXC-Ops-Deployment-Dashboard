@@ -33,6 +33,9 @@ jobs:
           push: true
           tags: ghcr.io/tomodachi0/dxc-ops-deployment-dashboard/backend:${{ github.ref_name }}-${{ env.SHA_SHORT }}
 
+      - name: Clean up any leftover DAST container
+        run: docker rm -f dast-target || true
+
       - name: Start backend for DAST scan
         run: |
           docker run -d -p 8000:8000 --name dast-target ghcr.io/tomodachi0/dxc-ops-deployment-dashboard/backend:${{ github.ref_name }}-${{ env.SHA_SHORT }}
@@ -47,7 +50,7 @@ jobs:
 
       - name: Stop DAST target container
         if: always()
-        run: docker stop dast-target
+        run: docker rm -f dast-target
 
       - name: Build and push frontend image
         uses: docker/build-push-action@v5
