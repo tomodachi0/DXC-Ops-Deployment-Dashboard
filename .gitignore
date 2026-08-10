@@ -4,3 +4,15 @@ backend/dxc_ops.db
 # Python cache
 __pycache__/
 *.pyc
+
+cat >> .gitignore << 'EOF'
+# Terraform
+terraform/.terraform/
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
+terraform/terraform.tfvars
+terraform/*.tfplan
+
+# Ansible
+ansible/inventory.ini
+EOF

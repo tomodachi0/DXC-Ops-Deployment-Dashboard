@@ -1,0 +1,99 @@
+---
+# Run with:
+#   ansible-playbook -i inventory.ini playbook.yml \
+#     -e "github_runner_token=PASTE_TOKEN" -e "github_repo=you/your-app-repo"
+
+- name: Set up control node (k3s server + GitHub runner)
+  hosts: control
+  become: yes
+  tasks:
+    - name: Install k3s server
+      shell: curl -sfL https://get.k3s.io | sh -s - --disable=traefik
+      args:
+        creates: /usr/local/bin/k3s
+
+    - name: Wait for node token to exist
+      wait_for:
+        path: /var/lib/rancher/k3s/server/node-token
+        timeout: 60
+
+    - name: Taint control node so app pods can't land here
+      shell: k3s kubectl taint nodes $(hostname) node-role=control:NoSchedule --overwrite
+      environment:
+        KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+
+    - name: Read node token (used by the worker play below)
+      slurp:
+        src: /var/lib/rancher/k3s/server/node-token
+      register: node_token_raw
+
+    - name: Save token as a fact
+      set_fact:
+        k3s_node_token: "{{ node_token_raw.content | b64decode | trim }}"
+
+    - name: Install Docker (needed to build images)
+      apt:
+        name: docker.io
+        state: present
+        update_cache: yes
+
+    - name: Add azureuser to docker group
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+
+    - name: Create runner directory
+      file:
+        path: "/home/{{ ansible_user }}/actions-runner"
+        state: directory
+        owner: "{{ ansible_user }}"
+
+    - name: Download GitHub Actions runner
+      get_url:
+        url: "https://github.com/actions/runner/releases/download/v2.319.1/actions-runner-linux-x64-2.319.1.tar.gz"
+        dest: "/home/{{ ansible_user }}/actions-runner/runner.tar.gz"
+
+    - name: Extract runner
+      unarchive:
+        src: "/home/{{ ansible_user }}/actions-runner/runner.tar.gz"
+        dest: "/home/{{ ansible_user }}/actions-runner"
+        remote_src: yes
+        owner: "{{ ansible_user }}"
+
+    - name: Configure the runner
+      shell: >
+        ./config.sh --url https://github.com/{{ github_repo }}
+        --token {{ github_runner_token }} --unattended --name vm1-control
+      args:
+        chdir: "/home/{{ ansible_user }}/actions-runner"
+        creates: "/home/{{ ansible_user }}/actions-runner/.runner"
+      become: yes
+      become_user: "{{ ansible_user }}"
+
+    - name: Install runner as a systemd service
+      shell: ./svc.sh install {{ ansible_user }}
+      args:
+        chdir: "/home/{{ ansible_user }}/actions-runner"
+        creates: /etc/systemd/system/actions.runner.*.service
+
+    - name: Start the runner service
+      shell: ./svc.sh start
+      args:
+        chdir: "/home/{{ ansible_user }}/actions-runner"
+
+- name: Join worker node to the cluster
+  hosts: worker
+  become: yes
+  vars:
+    k3s_server_ip: "10.0.1.5"
+    k3s_token: "{{ hostvars['vm1-control']['k3s_node_token'] }}"
+  tasks:
+    - name: Install k3s agent and join
+      shell: >
+        curl -sfL https://get.k3s.io |
+        K3S_URL=https://{{ k3s_server_ip }}:6443
+        K3S_TOKEN={{ k3s_token }}
+        sh -
+      args:
+        creates: /usr/local/bin/k3s-agent

@@ -8,7 +8,7 @@ on:
 
 jobs:
   all:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted 
     permissions:
       contents: write     
       packages: write 
@@ -19,6 +19,13 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          
+
+      - name: Run Gitleaks secret scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -28,13 +35,20 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-          pip install ruff pytest httpx
+          pip install ruff pytest httpx bandit
 
       - name: Lint code
         run: ruff check --output-format=github .
 
+      - name: Run Bandit SAST scan
+        run: python -m bandit -r . -f screen --exclude ./venv,./.venv || true
+
       - name: Run tests
         run: pytest
+
+      - name: Get short commit SHA
+        working-directory: .
+        run: echo "SHA_SHORT=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
       - name: Build backend image
         working-directory: .
@@ -44,5 +58,24 @@ jobs:
         working-directory: .
         run: docker build -t dxc-frontend:ci-test ./frontend
 
+      - name: Trivy scan - backend image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: dxc-backend:ci-test
+          severity: CRITICAL,HIGH
+          exit-code: 0
 
-          
+      - name: Trivy scan - frontend image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: dxc-frontend:ci-test
+          severity: CRITICAL,HIGH
+          exit-code: 0
+
+      - name: Trivy config scan - k8s manifests
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: config
+          scan-ref: k8s/
+          severity: CRITICAL,HIGH
+          exit-code: 0
