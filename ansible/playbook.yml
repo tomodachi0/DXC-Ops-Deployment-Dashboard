@@ -31,9 +31,30 @@
       set_fact:
         k3s_node_token: "{{ node_token_raw.content | b64decode | trim }}"
 
-    - name: Install Docker (needed to build images)
+    - name: Install Docker prerequisites
       apt:
-        name: docker.io
+        name: [ca-certificates, curl]
+        state: present
+        update_cache: yes
+
+    - name: Add Docker GPG key
+      get_url:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        dest: /etc/apt/keyrings/docker.asc
+        mode: '0644'
+
+    - name: Add Docker apt repo
+      apt_repository:
+        repo: "deb [arch={{ ansible_architecture }} signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+
+    - name: Install Docker + Buildx
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
         state: present
         update_cache: yes
 

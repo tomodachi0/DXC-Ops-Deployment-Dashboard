@@ -27,6 +27,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Clean stale temp files
+        run: rm -f /tmp/gitleaks.tmp
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -58,12 +61,20 @@ jobs:
         working-directory: .
         run: docker build -t dxc-frontend:ci-test ./frontend
 
+      - name: Cache Trivy DB
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/trivy
+          key: trivy-db-${{ github.run_id }}
+          restore-keys: trivy-db-
+
       - name: Trivy scan - backend image
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: dxc-backend:ci-test
           severity: CRITICAL,HIGH
           exit-code: 0
+          db-repository: ghcr.io/aquasecurity/trivy-db
 
       - name: Trivy scan - frontend image
         uses: aquasecurity/trivy-action@master
@@ -71,6 +82,7 @@ jobs:
           image-ref: dxc-frontend:ci-test
           severity: CRITICAL,HIGH
           exit-code: 0
+          db-repository: ghcr.io/aquasecurity/trivy-db
 
       - name: Trivy config scan - k8s manifests
         uses: aquasecurity/trivy-action@master
@@ -79,3 +91,4 @@ jobs:
           scan-ref: k8s/
           severity: CRITICAL,HIGH
           exit-code: 0
+          db-repository: ghcr.io/aquasecurity/trivy-db
