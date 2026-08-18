@@ -13,6 +13,8 @@ spec:
       labels:
         app: dxc-frontend
     spec:
+      imagePullSecrets:
+        - name: acr-secret
       containers:
         - name: frontend
           image: dxcopsacr.azurecr.io/dxc-ops-frontend:placeholder
