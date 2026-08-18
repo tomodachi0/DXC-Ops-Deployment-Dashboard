@@ -6,6 +6,6 @@ resources:
   - ingress.yaml
 images:
   - name: dxcopsacr.azurecr.io/dxc-ops-backend
-    newTag: dev-872e9ea
+    newTag: dev-47e238c
   - name: dxcopsacr.azurecr.io/dxc-ops-frontend
-    newTag: dev-872e9ea
+    newTag: dev-47e238c
