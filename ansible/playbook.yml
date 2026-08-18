@@ -118,3 +118,8 @@
         sh -
       args:
         creates: /usr/local/bin/k3s-agent
+
+- name: Install Azure CLI
+  shell: curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+  args:
+    creates: /usr/bin/az
