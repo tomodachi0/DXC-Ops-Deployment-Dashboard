@@ -15,6 +15,6 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: ghcr.io/tomodachi0/dxc-ops-deployment-dashboard/frontend:placeholder
+          image: dxcopsacr.azurecr.io/dxc-ops-frontend:placeholder
           ports:
             - containerPort: 80
