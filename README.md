@@ -320,5 +320,5 @@ supprimer `devflow-tfstate-rg` (état Terraform distant).
 
 ## Auteur
 
-**Yassine** — étudiant ingénieur, filière Ingénierie des Infrastructures
-Numériques, spécialisation DevOps & Data Engineering, ESI Rabat.
+**Ahmed Yassine NADIR** — étudiant ingénieur, filière Ingénierie de l'Information Numérique, 
+spécialisation DevOps & Data Engineering, ESI Rabat.
