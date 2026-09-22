@@ -15,4 +15,4 @@ terraform/*.tfplan
 
 # Ansible
 ansible/inventory.ini
-EOF
+EOFterraform/backend.hcl

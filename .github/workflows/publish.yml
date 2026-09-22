@@ -16,12 +16,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+      - name: Azure login
+        uses: azure/login@v2
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Get ACR credentials from Key Vault
+        run: |
+          echo "ACR_USERNAME=$(az keyvault secret show --vault-name dxcopskv1 --name acr-username --query value -o tsv)" >> $GITHUB_ENV
+          echo "ACR_PASSWORD=$(az keyvault secret show --vault-name dxcopskv1 --name acr-password --query value -o tsv)" >> $GITHUB_ENV
+
+      - name: Log in to ACR
+        run: echo "$ACR_PASSWORD" | docker login dxcopsacr.azurecr.io -u "$ACR_USERNAME" --password-stdin
 
       - name: Get short commit SHA
         run: echo "SHA_SHORT=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
@@ -31,14 +37,14 @@ jobs:
         with:
           context: ./backend
           push: true
-          tags: ghcr.io/tomodachi0/dxc-ops-deployment-dashboard/backend:${{ github.ref_name }}-${{ env.SHA_SHORT }}
+          tags: dxcopsacr.azurecr.io/dxc-ops-backend:${{ github.ref_name }}-${{ env.SHA_SHORT }}
 
       - name: Clean up any leftover DAST container
         run: docker rm -f dast-target || true
 
       - name: Start backend for DAST scan
         run: |
-          docker run -d -p 8000:8000 --name dast-target ghcr.io/tomodachi0/dxc-ops-deployment-dashboard/backend:${{ github.ref_name }}-${{ env.SHA_SHORT }}
+          docker run -d -p 8000:8000 --name dast-target dxcopsacr.azurecr.io/dxc-ops-backend:${{ github.ref_name }}-${{ env.SHA_SHORT }}
           sleep 8
           curl -f http://localhost:8000/api/health
 
@@ -57,7 +63,7 @@ jobs:
         with:
           context: ./frontend
           push: true
-          tags: ghcr.io/tomodachi0/dxc-ops-deployment-dashboard/frontend:${{ github.ref_name }}-${{ env.SHA_SHORT }}
+          tags: dxcopsacr.azurecr.io/dxc-ops-frontend:${{ github.ref_name }}-${{ env.SHA_SHORT }}
 
       - name: Update image tag in overlay
         run: |

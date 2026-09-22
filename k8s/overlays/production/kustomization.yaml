@@ -5,7 +5,7 @@ resources:
   - ../../base
   - ingress.yaml
 images:
-  - name: ghcr.io/tomodachi0/dxc-ops-deployment-dashboard/backend
-    newTag: main-afa2dda
-  - name: ghcr.io/tomodachi0/dxc-ops-deployment-dashboard/frontend
-    newTag: main-afa2dda
+  - name: dxcopsacr.azurecr.io/dxc-ops-backend
+    newTag: main-ad67375
+  - name: dxcopsacr.azurecr.io/dxc-ops-frontend
+    newTag: main-ad67375

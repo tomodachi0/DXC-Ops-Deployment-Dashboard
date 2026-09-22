@@ -5,6 +5,8 @@ terraform {
       version = "~> 3.90"
     }
   }
+  
+  backend "azurerm" {}
 }
 
 provider "azurerm" {
@@ -124,6 +126,10 @@ resource "azurerm_linux_virtual_machine" "vm1" {
     sku       = "22_04-lts-gen2"
     version   = "latest"
   }
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 # --- VM2: worker node (runs the app) ---
@@ -190,4 +196,49 @@ output "vm2_public_ip" {
 
 output "vm1_private_ip" {
   value = azurerm_network_interface.vm1_nic.private_ip_address
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "kv" {
+  name                       = "dxcopskv1"
+  location                    = azurerm_resource_group.rg.location
+  resource_group_name        = azurerm_resource_group.rg.name
+  tenant_id                   = data.azurerm_client_config.current.tenant_id
+  sku_name                    = "standard"
+  enable_rbac_authorization  = true
+}
+
+resource "azurerm_role_assignment" "me_keyvault_officer" {
+  scope                = azurerm_key_vault.kv.id
+  role_definition_name = "Key Vault Secrets Officer"
+  principal_id          = data.azurerm_client_config.current.object_id
+}
+
+resource "azurerm_container_registry" "acr" {
+  name                = "dxcopsacr"
+  resource_group_name = azurerm_resource_group.rg.name
+  location             = azurerm_resource_group.rg.location
+  sku                  = "Basic"
+  admin_enabled        = true
+}
+
+resource "azurerm_key_vault_secret" "acr_username" {
+  name         = "acr-username"
+  value        = azurerm_container_registry.acr.admin_username
+  key_vault_id = azurerm_key_vault.kv.id
+  depends_on   = [azurerm_role_assignment.me_keyvault_officer]
+}
+
+resource "azurerm_key_vault_secret" "acr_password" {
+  name         = "acr-password"
+  value        = azurerm_container_registry.acr.admin_password
+  key_vault_id = azurerm_key_vault.kv.id
+  depends_on   = [azurerm_role_assignment.me_keyvault_officer]
+}
+
+resource "azurerm_role_assignment" "vm1_keyvault_reader" {
+  scope                = azurerm_key_vault.kv.id
+  role_definition_name = "Key Vault Secrets User"
+  principal_id          = azurerm_linux_virtual_machine.vm1.identity[0].principal_id
 }

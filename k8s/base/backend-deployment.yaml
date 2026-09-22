@@ -13,9 +13,11 @@ spec:
       labels:
         app: dxc-backend
     spec:
+      imagePullSecrets:
+        - name: acr-secret
       containers:
         - name: backend
-          image: ghcr.io/tomodachi0/dxc-ops-deployment-dashboard/backend:placeholder
+          image: dxcopsacr.azurecr.io/dxc-ops-backend:placeholder
           ports:
             - containerPort: 8000
           envFrom:
